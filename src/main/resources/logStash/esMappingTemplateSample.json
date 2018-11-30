@@ -1,0 +1,45 @@
+{
+    "template": "index_template_1",
+    "version": 1,
+	"settings": {
+        "index.refresh_interval": "5s"
+    },
+    "mappings": {
+        "_default_": {
+            "date_detection": false
+        },
+		"mapping_1" :{
+			"properties": {
+				"id": {
+					"type": "keyword",
+					"store": true
+				},
+				"resno": {
+					"type": "text",
+					"store": true
+				},
+				"title": {
+					"type": "text",
+					"store": true,
+					"analyzer": "ik_max_word"
+				},
+				"status": {
+					"type": "keyword",
+					"store": true
+				},
+				"createtime": {
+					"type": "date",
+					"store": true
+				},
+				"modifytime": {
+				    "type": "date",
+					"store": true
+				},
+				"count": {
+					"type": "long",
+					"store": true
+				}
+			}
+		}
+    }
+}
