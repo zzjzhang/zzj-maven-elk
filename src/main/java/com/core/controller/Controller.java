@@ -12,7 +12,7 @@ import org.elasticsearch.client.AdminClient;
 import org.elasticsearch.action.ActionFuture;
 import org.springframework.http.ResponseEntity;
 import org.elasticsearch.action.get.GetResponse;
-import com.core.service.ElasticSearchServiceImpl;
+import com.core.utils.ElasticSearchUtils;
 import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -42,7 +42,7 @@ public class Controller {
 	private TransportClient transportClient;
 
 	@Autowired
-	private ElasticSearchServiceImpl elasticSearchServiceImpl;
+	private ElasticSearchUtils elasticSearchUtils;
 
 
 
@@ -241,7 +241,7 @@ public class Controller {
     	
     	// 执行查询
     	try {
-			elasticSearchServiceImpl.pageSearch(null, null, null, null, null, null, null, null, 0, 0, null);
+			elasticSearchUtils.pageSearch(null, null, null, null, null, null, null, null, 0, 0, null);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		}

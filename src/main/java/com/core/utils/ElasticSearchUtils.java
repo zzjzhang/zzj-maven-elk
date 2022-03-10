@@ -1,58 +1,89 @@
-package com.core.service;
+package com.core.utils;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import org.slf4j.Logger;
-import java.util.Iterator;
-import java.util.ArrayList;
-import com.core.bean.PageBean;
-import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
-import java.net.UnknownHostException;
-import org.elasticsearch.search.SearchHit;
-import org.springframework.stereotype.Service;
-import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.TermQueryBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.client.transport.TransportClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import com.core.bean.PageBean;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.AdminClient;
+import org.elasticsearch.client.IndicesAdminClient;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.*;
 
 
 
 /**
- * Elastic Search 服务
+ * Elastic Search utils
  * 
  * @author zzj-zhang
  *
  */
-@Service
-public class ElasticSearchServiceImpl {
+public class ElasticSearchUtils {
 
 	// 日志
-	Logger logger = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
+	Logger logger = LoggerFactory.getLogger(ElasticSearchUtils.class);
 
 
 	// 字段
 	// Elastic Search 传输 客户端
 	@Autowired
-	private TransportClient transportClient;
+	private static TransportClient transportClient = null;
 
 	// Elastic Search 执行 超时 时间
 	@Value("${elasticSearch.cluster.timeOutMillis}")
-	private String timeOutMillis;
+	private static String timeOutMillis = null;
 
 
-	// 方法
+	/**
+	 *
+	 * create index
+	 *
+	 * @param indexName
+	 */
+	public static void createIndex(String indexName) {
+		AdminClient admin = transportClient.admin();
+		IndicesAdminClient indices = admin.indices();
+		indices.prepareCreate(indexName)
+				.setSettings(
+						Settings.builder()
+								.put("index.number_of_shards", 3)
+								.put("index.number_of_replicas", 1)
+				).get();
+	}
+
+
+	/**
+	 * insert data into elastic search
+	 *
+	 * @param indexName
+	 * @param typeName
+	 * @param contentArray
+	 * @throws IOException
+	 */
+	public static void insert(String indexName, String typeName, String[] contentArray) throws IOException {
+		for (String content : contentArray) {
+			transportClient.prepareIndex(indexName, typeName)
+					.setSource(XContentFactory.jsonBuilder().startObject()
+							.field("content", content)
+							.endObject())
+					.get();
+		}
+	}
+
+
+
 	/**
 	 * 分页查询数据（交集 AND）
 	 * 
@@ -77,7 +108,7 @@ public class ElasticSearchServiceImpl {
 	 * 设置是否按查询匹配度排序 
 	 * 
 	 */
-	public <T> PageBean<T> pageSearch(String index, String type, 
+	public static  <T> PageBean<T> pageSearch(String index, String type,
 			Map<String, Object> termQueryParams, 
 			List<Map<String, Object>> matchQueryParamList,
 			Map<String, Set<String>> multiMatchQueryParams, 
